@@ -18,4 +18,4 @@ export default function TorneoDetalle(){
     </div>
   )
 }
-function EquiposTab({id}){ const [rows,setRows]=useState([]); useEffect(()=>{ get(`/torneos/${id}/equipos`).then(r=>setRows(r.data)).catch(()=>{}) },[id]); return <ul className="list-group">{rows.map(e=><li key={e.id} className="list-group-item">{e.nombre}</li>)}</ul> }
+function EquiposTab({id}){ const [rows,setRows]=useState([]); useEffect(()=>{ get(`/torneos/${id}/equipos`).then(r=>setRows(r.data)).catch(()=>{}) },[id]); return <ul className="list-group">{rows.map(e=><li key={e.id} className="list-group-item d-flex justify-content-between"><span>{e.nombre} <small className="text-muted">#{e.id}</small></span><a href={`/equipos/${e.id}`} className="btn btn-sm btn-outline-primary">Ver / Añadir jugadores</a></li>)}</ul> }

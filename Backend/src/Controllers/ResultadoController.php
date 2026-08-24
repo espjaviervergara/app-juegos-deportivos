@@ -19,15 +19,15 @@ class ResultadoController
         }
         // check pendiente existente
         $ex=$pdo->prepare("SELECT 1 FROM resultados_propuestos WHERE partido_id=? AND estado='PENDIENTE'"); $ex->execute([$pid]); if($ex->fetch()) Response::error('CONFLICT','Pending result already exists',409);
-        $goles=$req->input('goles')??[]; $tarjetas=$req->input('tarjetas')??[]; $obs=$req->input('observaciones');
+        $goles=$req->input('goles')??[]; $tarjetas=$req->input('tarjetas')??[]; $faltas=$req->input('faltas')??[]; $obs=$req->input('observaciones');
         // validar jugador pertenece a equipo del partido
-        foreach(array_merge($goles,$tarjetas) as $it){
+        foreach(array_merge($goles,$tarjetas,$faltas) as $it){
             if(!isset($it['jugadorId'])||!isset($it['equipoId'])) Response::error('VALIDATION_ERROR','jugadorId and equipoId required',422);
             $jid=(int)$it['jugadorId']; $eid=(int)$it['equipoId'];
             if(!in_array($eid,[$part['equipoA_id'],$part['equipoB_id']])) Response::error('VALIDATION_ERROR','Equipo not in match',422);
             $chk=$pdo->prepare("SELECT 1 FROM jugadores WHERE id=? AND equipo_id=?"); $chk->execute([$jid,$eid]); if(!$chk->fetch()) Response::error('VALIDATION_ERROR',"Jugador $jid not in equipo $eid",422);
         }
-        $datos=json_encode(['goles'=>$goles,'tarjetas'=>$tarjetas,'observaciones'=>$obs], JSON_UNESCAPED_UNICODE);
+        $datos=json_encode(['goles'=>$goles,'tarjetas'=>$tarjetas,'faltas'=>$faltas,'observaciones'=>$obs], JSON_UNESCAPED_UNICODE);
         // version: max version for this partido +1
         $ver=$pdo->prepare("SELECT COALESCE(MAX(version),0)+1 FROM resultados_propuestos WHERE partido_id=?"); $ver->execute([$pid]); $v=(int)$ver->fetchColumn();
         $pdo->prepare("INSERT INTO resultados_propuestos (partido_id, estado, datos, version, creado_por) VALUES (?,?,?,?,?)")->execute([$pid,'PENDIENTE',$datos,$v,$uid]);
@@ -45,8 +45,8 @@ class ResultadoController
         $pid=(int)$req->params['id']; $pdo=Database::pdo();
         $stmt=$pdo->prepare("SELECT * FROM resultados_propuestos WHERE partido_id=? AND estado='PENDIENTE'"); $stmt->execute([$pid]); $cur=$stmt->fetch(); if(!$cur) Response::error('NOT_FOUND','No pending result',404);
         $ifMatch=$req->header('if-match'); if($ifMatch && (int)$ifMatch !== (int)$cur['version']) Response::error('CONFLICT','Version mismatch',409);
-        $goles=$req->input('goles')??json_decode($cur['datos'],true)['goles']??[]; $tarjetas=$req->input('tarjetas')??json_decode($cur['datos'],true)['tarjetas']??[];
-        $datos=json_encode(['goles'=>$goles,'tarjetas'=>$tarjetas], JSON_UNESCAPED_UNICODE);
+        $goles=$req->input('goles')??json_decode($cur['datos'],true)['goles']??[]; $tarjetas=$req->input('tarjetas')??json_decode($cur['datos'],true)['tarjetas']??[]; $faltas=$req->input('faltas')??json_decode($cur['datos'],true)['faltas']??[];
+        $datos=json_encode(['goles'=>$goles,'tarjetas'=>$tarjetas,'faltas'=>$faltas], JSON_UNESCAPED_UNICODE);
         $pdo->prepare("UPDATE resultados_propuestos SET datos=?, updated_at=NOW() WHERE id=?")->execute([$datos,$cur['id']]);
         Response::success($pdo->query("SELECT * FROM resultados_propuestos WHERE id={$cur['id']}")->fetch());
     }

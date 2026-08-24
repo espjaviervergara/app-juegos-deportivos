@@ -10,6 +10,8 @@ import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Gestion from './pages/Gestion.jsx'
 import Auditoria from './pages/Auditoria.jsx'
+import EquipoDetalle from './pages/EquipoDetalle.jsx'
+import PartidoDetalle from './pages/PartidoDetalle.jsx'
 
 function RequireAuth({children}){ const {user}=useAuth(); return user?children:<Navigate to="/login"/> }
 function RequireAdmin({children}){ const {isAdmin}=useAuth(); return isAdmin?children:<div className="alert alert-danger">403 No autorizado</div> }
@@ -26,6 +28,8 @@ export const router = createBrowserRouter([
   { path:'/admin/deportes', element:<Layout><RequireAuth><RequireAdmin><Gestion tipo="deportes"/></RequireAdmin></RequireAuth></Layout> },
   { path:'/admin/torneos', element:<Layout><RequireAuth><RequireAdmin><Gestion tipo="torneos"/></RequireAdmin></RequireAuth></Layout> },
   { path:'/admin/equipos', element:<Layout><RequireAuth><RequireAdmin><Gestion tipo="equipos"/></RequireAdmin></RequireAuth></Layout> },
+  { path:'/equipos/:id', element:<Layout><EquipoDetalle/></Layout> },
+  { path:'/partidos/:id', element:<Layout><PartidoDetalle/></Layout> },
   { path:'/admin/auditoria', element:<Layout><RequireAuth><RequireAdmin><Auditoria/></RequireAdmin></RequireAuth></Layout> },
   { path:'*', element:<div className="p-5">404 Not found</div> },
 ])
