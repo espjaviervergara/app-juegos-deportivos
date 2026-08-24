@@ -1,0 +1,33 @@
+# PHP
+vendor/
+composer.lock
+
+# Config con secretos
+Backend/config/secret.php
+Backend/config/*.local.php
+
+# Uploads
+Backend/public/uploads/
+Backend/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Node (si Frontend usa npm)
+Frontend/node_modules/
+Frontend/dist/
+**/node_modules/
+
+# Env
+.env
+.env.local
+
+# OpenSpec tooling (opcional mantener)
+# Descomenta si no quieres versionar tooling local
+# .opencode/node_modules/
