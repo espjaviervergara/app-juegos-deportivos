@@ -1,0 +1,1 @@
+ALTER TABLE partidos ADD COLUMN grupo_id INT UNSIGNED NULL AFTER jornada_id;

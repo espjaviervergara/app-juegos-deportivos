@@ -12,6 +12,7 @@ use App\Controllers\PartidoController;
 use App\Controllers\ResultadoController;
 use App\Controllers\ClasificacionController;
 use App\Controllers\AuditoriaController;
+use App\Controllers\GrupoController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RbacMiddleware;
 use App\Middleware\RateLimitMiddleware;
@@ -55,6 +56,15 @@ class Routes
         $r->post('/api/v1/equipos/{id}/jugadores', [JugadorController::class,'store'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
         $r->put('/api/v1/jugadores/{id}', [JugadorController::class,'update'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
         $r->delete('/api/v1/jugadores/{id}', [JugadorController::class,'destroy'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+
+        // Grupos
+        $r->get('/api/v1/torneos/{id}/grupos', [GrupoController::class,'index']);
+        $r->post('/api/v1/torneos/{id}/grupos', [GrupoController::class,'store'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->post('/api/v1/torneos/{id}/grupos/auto', [GrupoController::class,'auto'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->delete('/api/v1/grupos/{id}', [GrupoController::class,'destroy'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->post('/api/v1/grupos/{id}/equipos', [GrupoController::class,'addEquipo'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->delete('/api/v1/grupos/{id}/equipos/{equipoId}', [GrupoController::class,'removeEquipo'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->put('/api/v1/grupos/reagrupar', [GrupoController::class,'reagrupar'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
 
         // Jornadas
         $r->get('/api/v1/torneos/{id}/jornadas', [JornadaController::class,'index']);
