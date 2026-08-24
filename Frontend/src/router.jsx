@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext.jsx'
 import Layout from './components/Layout.jsx'
+import Home from './pages/Home.jsx'
 import Torneos from './pages/Torneos.jsx'
 import TorneoDetalle from './pages/TorneoDetalle.jsx'
 import Calendario from './pages/Calendario.jsx'
@@ -14,7 +15,8 @@ function RequireAuth({children}){ const {user}=useAuth(); return user?children:<
 function RequireAdmin({children}){ const {isAdmin}=useAuth(); return isAdmin?children:<div className="alert alert-danger">403 No autorizado</div> }
 
 export const router = createBrowserRouter([
-  { path:'/', element:<Layout><Torneos/></Layout> },
+  { path:'/', element:<Layout><Home/></Layout> },
+  { path:'/torneos', element:<Layout><Torneos/></Layout> },
   { path:'/torneos/:id', element:<Layout><TorneoDetalle/></Layout> },
   { path:'/torneos/:id/calendario', element:<Layout><Calendario/></Layout> },
   { path:'/torneos/:id/clasificacion', element:<Layout><Clasificacion/></Layout> },
@@ -22,6 +24,8 @@ export const router = createBrowserRouter([
   { path:'/login', element:<Login/> },
   { path:'/dashboard', element:<Layout><RequireAuth><Dashboard/></RequireAuth></Layout> },
   { path:'/admin/deportes', element:<Layout><RequireAuth><RequireAdmin><Gestion tipo="deportes"/></RequireAdmin></RequireAuth></Layout> },
+  { path:'/admin/torneos', element:<Layout><RequireAuth><RequireAdmin><Gestion tipo="torneos"/></RequireAdmin></RequireAuth></Layout> },
+  { path:'/admin/equipos', element:<Layout><RequireAuth><RequireAdmin><Gestion tipo="equipos"/></RequireAdmin></RequireAuth></Layout> },
   { path:'/admin/auditoria', element:<Layout><RequireAuth><RequireAdmin><Auditoria/></RequireAdmin></RequireAuth></Layout> },
   { path:'*', element:<div className="p-5">404 Not found</div> },
 ])
