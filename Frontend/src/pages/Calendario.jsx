@@ -17,7 +17,7 @@ export default function Calendario(){
         <div key={jornada} className="card mb-3"><div className="card-header tw-font-bold">{jornada}</div><div className="card-body row">
           {partidos.map(p=>(
             <div key={p.id} className="col-md-6 mb-2"><div className="border rounded p-2">
-              <div>{p.equipoA_id} vs {p.equipoB_id} <small className="text-muted">{p.fechaHora}</small></div>
+              <div>{p.equipoA_nombre || p.equipoA_id} vs {p.equipoB_nombre || p.equipoB_id} <small className="text-muted">{p.fechaHora}</small></div>
               <span className={`badge ${p.estado==='finalizado'?'bg-success':'bg-warning'}`}>{p.estado}</span>
               <a href={`/partidos/${p.id}`} className="btn btn-sm btn-outline-primary ms-2">Goles/Faltas/Tarjetas</a>
             </div></div>

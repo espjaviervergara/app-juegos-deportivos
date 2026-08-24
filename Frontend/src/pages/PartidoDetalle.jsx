@@ -50,22 +50,28 @@ export default function PartidoDetalle(){
   async function rechazar(){ if(!motivo) return setMsg('Motivo requerido'); try{ await post(`/partidos/${id}/resultados/rechazar`,{motivo}); setMsg('Rechazado'); load()}catch(e){ setMsg(e.message)} }
 
   if(!partido) return <div>Cargando partido...</div>
-  const todosJugadores = [...jugadoresA.map(j=>({...j, equipoId:partido.equipoA_id, equipoNombre:'A'})), ...jugadoresB.map(j=>({...j, equipoId:partido.equipoB_id, equipoNombre:'B'}))]
+  const todosJugadores = [...jugadoresA.map(j=>({...j, equipoId:partido.equipoA_id, equipoNombre: partido.equipoA_nombre || 'A'})), ...jugadoresB.map(j=>({...j, equipoId:partido.equipoB_id, equipoNombre: partido.equipoB_nombre || 'B'}))]
 
   return (
     <div>
-      <h3>Partido #{partido.id} — {partido.equipoA_id} vs {partido.equipoB_id}</h3>
+      <h3>Partido #{partido.id} — {partido.equipoA_nombre || partido.equipoA_id} vs {partido.equipoB_nombre || partido.equipoB_id}</h3>
       <p className="text-muted">{partido.fechaHora} — {partido.estado} {resultado && <span className={`badge ${resultado.estado==='OFICIAL'?'bg-success': resultado.estado==='RECHAZADO'?'bg-danger':'bg-warning'}`}>{resultado.estado} v{resultado.version}</span>} {resultado?.motivo_rechazo && <span className="ms-2">Motivo: {resultado.motivo_rechazo}</span>}</p>
       {msg && <div className="alert alert-info">{msg}</div>}
 
       <div className="row">
         <div className="col-md-6">
           <h6>Goles ({goles.length})</h6>
-          <ul className="list-group mb-2">{goles.map((g,i)=><li key={i} className="list-group-item d-flex justify-content-between">Jugador #{g.jugadorId} (Eq {g.equipoId}) x{g.cantidad} <button className="btn btn-sm btn-outline-danger" onClick={()=>setGoles(goles.filter((_,idx)=>idx!==i))}>x</button></li>)}</ul>
+          <ul className="list-group mb-2">{goles.map((g,i)=>{
+            const j=todosJugadores.find(x=>x.id==g.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${g.jugadorId}`} ({j?j.equipoNombre:`Eq ${g.equipoId}`}) x{g.cantidad} <button className="btn btn-sm btn-outline-danger" onClick={()=>setGoles(goles.filter((_,idx)=>idx!==i))}>x</button></li>
+          })}</ul>
           <h6>Faltas ({faltas.length}) <small className="text-muted">distinto a tarjetas</small></h6>
-          <ul className="list-group mb-2">{faltas.map((f,i)=><li key={i} className="list-group-item d-flex justify-content-between">Jugador #{f.jugadorId} (Eq {f.equipoId}) x{f.cantidad} <button className="btn btn-sm btn-outline-danger" onClick={()=>setFaltas(faltas.filter((_,idx)=>idx!==i))}>x</button></li>)}</ul>
+          <ul className="list-group mb-2">{faltas.map((f,i)=>{
+            const j=todosJugadores.find(x=>x.id==f.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${f.jugadorId}`} ({j?j.equipoNombre:`Eq ${f.equipoId}`}) x{f.cantidad} <button className="btn btn-sm btn-outline-danger" onClick={()=>setFaltas(faltas.filter((_,idx)=>idx!==i))}>x</button></li>
+          })}</ul>
           <h6>Tarjetas ({tarjetas.length})</h6>
-          <ul className="list-group mb-2">{tarjetas.map((t,i)=><li key={i} className="list-group-item d-flex justify-content-between">Jugador #{t.jugadorId} ({t.tipo}) <button className="btn btn-sm btn-outline-danger" onClick={()=>setTarjetas(tarjetas.filter((_,idx)=>idx!==i))}>x</button></li>)}</ul>
+          <ul className="list-group mb-2">{tarjetas.map((t,i)=>{
+            const j=todosJugadores.find(x=>x.id==t.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${t.jugadorId}`} ({t.tipo}) <button className="btn btn-sm btn-outline-danger" onClick={()=>setTarjetas(tarjetas.filter((_,idx)=>idx!==i))}>x</button></li>
+          })}</ul>
         </div>
 
         <div className="col-md-6">
@@ -84,8 +90,8 @@ export default function PartidoDetalle(){
             <div className="mb-2">
               <label className="form-label small">Equipo (auto por jugador)</label>
               <select className="form-select" value={selEquipo} onChange={e=>setSelEquipo(e.target.value)}>
-                <option value={partido.equipoA_id}>Equipo A ({partido.equipoA_id})</option>
-                <option value={partido.equipoB_id}>Equipo B ({partido.equipoB_id})</option>
+                <option value={partido.equipoA_id}>{partido.equipoA_nombre || 'Equipo A'} ({partido.equipoA_id})</option>
+                <option value={partido.equipoB_id}>{partido.equipoB_nombre || 'Equipo B'} ({partido.equipoB_id})</option>
               </select>
             </div>
             <div className="d-flex gap-2 mb-2">

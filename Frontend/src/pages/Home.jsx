@@ -43,7 +43,7 @@ export default function Home(){
                     <ul className="list-unstyled">
                       {(calendarios[t.id]||[]).slice(0,3).map(p=>(
                         <li key={p.id} className="d-flex justify-content-between border-bottom py-1">
-                          <span>{p.equipoA_id} vs {p.equipoB_id}</span>
+                          <span>{p.equipoA_nombre || p.equipoA_id} vs {p.equipoB_nombre || p.equipoB_id}</span>
                           <small>{new Date(p.fechaHora).toLocaleString()} <span className="badge bg-warning ms-1">{p.estado}</span></small>
                         </li>
                       ))}

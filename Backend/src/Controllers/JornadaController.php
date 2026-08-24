@@ -26,7 +26,7 @@ class JornadaController
     {
         $tid=(int)$req->params['id']; $pdo=Database::pdo();
         $page=max(1,(int)($req->query('page')??1)); $limit=min(100,max(1,(int)($req->query('limit')??20))); $off=($page-1)*$limit;
-        $stmt=$pdo->prepare("SELECT p.*, j.nro as jornada_nro FROM partidos p JOIN jornadas j ON j.id=p.jornada_id WHERE j.torneo_id=? ORDER BY p.fechaHora LIMIT $limit OFFSET $off");
+        $stmt=$pdo->prepare("SELECT p.*, j.nro as jornada_nro, ea.nombre as equipoA_nombre, eb.nombre as equipoB_nombre FROM partidos p JOIN jornadas j ON j.id=p.jornada_id JOIN equipos ea ON ea.id=p.equipoA_id JOIN equipos eb ON eb.id=p.equipoB_id WHERE j.torneo_id=? ORDER BY p.fechaHora LIMIT $limit OFFSET $off");
         $stmt->execute([$tid]); $data=$stmt->fetchAll();
         $cnt=$pdo->prepare("SELECT COUNT(*) FROM partidos p JOIN jornadas j ON j.id=p.jornada_id WHERE j.torneo_id=?"); $cnt->execute([$tid]);
         Response::paginated($data,$page,$limit,(int)$cnt->fetchColumn());

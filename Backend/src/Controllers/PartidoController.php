@@ -8,8 +8,8 @@ use App\Services\AuditService;
 
 class PartidoController
 {
-    public function porJornada(Request $req): void { $jid=(int)$req->params['id']; $pdo=Database::pdo(); $stmt=$pdo->prepare("SELECT * FROM partidos WHERE jornada_id=? ORDER BY fechaHora"); $stmt->execute([$jid]); Response::success($stmt->fetchAll()); }
-    public function show(Request $req): void { $pdo=Database::pdo(); $stmt=$pdo->prepare("SELECT * FROM partidos WHERE id=?"); $stmt->execute([(int)$req->params['id']]); $p=$stmt->fetch(); if(!$p) Response::error('NOT_FOUND','Partido not found',404); Response::success($p); }
+    public function porJornada(Request $req): void { $jid=(int)$req->params['id']; $pdo=Database::pdo(); $stmt=$pdo->prepare("SELECT p.*, ea.nombre as equipoA_nombre, eb.nombre as equipoB_nombre FROM partidos p JOIN equipos ea ON ea.id=p.equipoA_id JOIN equipos eb ON eb.id=p.equipoB_id WHERE p.jornada_id=? ORDER BY p.fechaHora"); $stmt->execute([$jid]); Response::success($stmt->fetchAll()); }
+    public function show(Request $req): void { $pdo=Database::pdo(); $stmt=$pdo->prepare("SELECT p.*, ea.nombre as equipoA_nombre, eb.nombre as equipoB_nombre FROM partidos p JOIN equipos ea ON ea.id=p.equipoA_id JOIN equipos eb ON eb.id=p.equipoB_id WHERE p.id=?"); $stmt->execute([(int)$req->params['id']]); $p=$stmt->fetch(); if(!$p) Response::error('NOT_FOUND','Partido not found',404); Response::success($p); }
     public function store(Request $req): void
     {
         $this->requireAdmin($req); $jid=(int)$req->params['id']; $pdo=Database::pdo();
