@@ -29,14 +29,16 @@ export default function Calendario(){
       {msg && <div className="alert alert-info">{msg}</div>}
       {cards.length===0 ? <div className="alert alert-info">Sin partidos en calendario</div> : cards.map(([jornada, partidos])=>(
         <div key={jornada} className="card mb-3"><div className="card-header tw-font-bold">{jornada}</div><div className="card-body row">
-          {partidos.map(p=>(
-            <div key={p.id} className="col-md-6 mb-2"><div className="border rounded p-2">
-              <div>{p.equipoA_nombre || p.equipoA_id} vs {p.equipoB_nombre || p.equipoB_id} <small className="text-muted">{p.fechaHora}</small> {p.grupo_nombre && <span className="badge bg-info ms-1">{p.grupo_nombre}</span>}</div>
+          {partidos.map(p=>{
+            const icono = p.grupo_nombre?.includes('Fútbol') ? '⚽' : '🏅'
+            return (
+            <div key={p.id} className="col-md-6 mb-2"><div className="border rounded p-2 shadow-sm">
+              <div>{icono} {p.equipoA_nombre || p.equipoA_id} vs {p.equipoB_nombre || p.equipoB_id} <small className="text-muted">{p.fechaHora}</small> {p.grupo_nombre && <span className="badge bg-info ms-1">{p.grupo_nombre}</span>}</div>
               <span className={`badge ${p.estado==='finalizado'?'bg-success':'bg-warning'}`}>{p.estado}</span>
               <a href={`/partidos/${p.id}`} className="btn btn-sm btn-outline-primary ms-1">Goles/Faltas/Tarjetas</a>
               <Reasignar partido={p} jornadas={jornadas} onReasignar={reasignar} />
             </div></div>
-          ))}
+          )})}
         </div></div>
       ))}
       {sinAsignar.length>0 && (
