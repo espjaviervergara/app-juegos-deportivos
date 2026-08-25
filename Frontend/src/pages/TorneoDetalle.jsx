@@ -114,18 +114,53 @@ function GruposTab({torneoId}){
 
 function JornadasTab({torneoId}){
   const [rows,setRows]=useState([]); const [nro,setNro]=useState(''); const [fecha,setFecha]=useState('')
+  const [tipo,setTipo]=useState('ida'); const [ambito,setAmbito]=useState('grupo'); const [jornadaSel,setJornadaSel]=useState(''); const [msg,setMsg]=useState(''); const [showElim,setShowElim]=useState(false); const [numClasificados,setNumClasificados]=useState(4)
   async function load(){ const r=await get(`/torneos/${torneoId}/jornadas`).catch(()=>({data:[]})); setRows(r.data) }
   useEffect(()=>{ load() },[torneoId])
   async function crear(e){ e.preventDefault(); try{ await post(`/torneos/${torneoId}/jornadas`,{nro:parseInt(nro), fecha}); setNro(''); setFecha(''); load() }catch(er){ alert(er.message) } }
+  async function generar(){
+    try{
+      const body={tipo, ambito, jornadaId: jornadaSel?parseInt(jornadaSel):null}
+      const r=await post(`/torneos/${torneoId}/fixture/generar`, body)
+      setMsg(`Generados ${r.data.creados} partidos (${tipo} ${ambito}${jornadaSel?' en jornada':', sin asignar'})`)
+      load()
+      setShowElim(true)
+    }catch(e){ setMsg(e.message) }
+  }
+  async function generarEliminatoria(){
+    try{
+      const r=await post(`/torneos/${torneoId}/fixture/eliminatoria`,{numClasificados:parseInt(numClasificados)})
+      setMsg(`Eliminatoria ${r.data.creados} partidos generada`); setShowElim(false)
+    }catch(e){ setMsg(e.message) }
+  }
   return (
     <div>
+      {msg && <div className="alert alert-info">{msg}</div>}
       <form onSubmit={crear} className="d-flex gap-2 mb-3">
         <input className="form-control w-auto" value={nro} onChange={e=>setNro(e.target.value)} placeholder="Nro" type="number" required />
         <input className="form-control w-auto" type="date" value={fecha} onChange={e=>setFecha(e.target.value)} required />
         <button className="btn btn-primary">Crear jornada</button>
       </form>
-      <small className="text-muted">Jornada puede tener partidos de varios grupos (grupo se elige al crear partido).</small>
-      <ul className="list-group mt-2">{rows.map(j=> <li key={j.id} className="list-group-item">Jornada {j.nro} — {j.fecha} <a href={`/partidos/${j.id}`} className="btn btn-sm btn-outline-secondary ms-2">Ver partidos</a></li>)}</ul>
+      <div className="card p-3 mb-3">
+        <h6>Generar fixture</h6>
+        <div className="d-flex gap-2 flex-wrap align-items-end">
+          <div><label className="form-label small">Tipo</label><select className="form-select" value={tipo} onChange={e=>setTipo(e.target.value)}><option value="ida">Ida (1 partido)</option><option value="ida_vuelta">Ida y vuelta (2)</option></select></div>
+          <div><label className="form-label small">Ámbito</label><select className="form-select" value={ambito} onChange={e=>setAmbito(e.target.value)}><option value="grupo">Por grupo</option><option value="sin_asignar">Sin asignar (todos)</option></select></div>
+          <div><label className="form-label small">Jornada destino</label><select className="form-select" value={jornadaSel} onChange={e=>setJornadaSel(e.target.value)}><option value="">Sin asignar (borrador)</option>{rows.map(j=> <option key={j.id} value={j.id}>Jornada {j.nro} — {j.fecha}</option>)}</select></div>
+          <button className="btn btn-success" onClick={generar}>Generar todos vs todos</button>
+        </div>
+        <small className="text-muted">Si eliges Sin asignar, partidos quedan en bolsa para asignar jornada/fecha después desde Calendario.</small>
+      </div>
+      {showElim && <div className="card p-3 mb-3 border-warning">
+        <h6>¿Va por eliminación directa?</h6>
+        <div className="d-flex gap-2 align-items-end">
+          <div><label className="form-label small">Clasificados</label><select className="form-select" value={numClasificados} onChange={e=>setNumClasificados(e.target.value)}><option value={2}>2 (Final)</option><option value={4}>4 (Semis)</option><option value={8}>8 (Cuartos)</option></select></div>
+          <button className="btn btn-warning" onClick={generarEliminatoria}>Generar eliminatoria</button>
+          <button className="btn btn-outline-secondary" onClick={()=>setShowElim(false)}>No, después</button>
+        </div>
+      </div>}
+      <small className="text-muted">Jornada puede tener partidos de varios grupos. Reasigna desde Calendario.</small>
+      <ul className="list-group mt-2">{rows.map(j=> <li key={j.id} className="list-group-item">Jornada {j.nro} — {j.fecha} <a href={`/torneos/${torneoId}/calendario`} className="btn btn-sm btn-outline-secondary ms-2">Ver calendario</a></li>)}</ul>
     </div>
   )
 }

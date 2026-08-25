@@ -13,6 +13,7 @@ use App\Controllers\ResultadoController;
 use App\Controllers\ClasificacionController;
 use App\Controllers\AuditoriaController;
 use App\Controllers\GrupoController;
+use App\Controllers\FixtureController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RbacMiddleware;
 use App\Middleware\RateLimitMiddleware;
@@ -65,6 +66,9 @@ class Routes
         $r->post('/api/v1/grupos/{id}/equipos', [GrupoController::class,'addEquipo'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
         $r->delete('/api/v1/grupos/{id}/equipos/{equipoId}', [GrupoController::class,'removeEquipo'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
         $r->put('/api/v1/grupos/reagrupar', [GrupoController::class,'reagrupar'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->post('/api/v1/torneos/{id}/fixture/generar', [FixtureController::class,'generar'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->post('/api/v1/torneos/{id}/fixture/eliminatoria', [FixtureController::class,'eliminatoria'], [AuthMiddleware::class, RateLimitMiddleware::class, RbacMiddleware::class]);
+        $r->get('/api/v1/torneos/{id}/partidos/sin-asignar', [FixtureController::class,'sinAsignar']);
 
         // Jornadas
         $r->get('/api/v1/torneos/{id}/jornadas', [JornadaController::class,'index']);
