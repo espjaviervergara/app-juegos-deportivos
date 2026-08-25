@@ -11,7 +11,9 @@ export default function PartidoDetalle(){
   const [goles,setGoles]=useState([]); const [faltas,setFaltas]=useState([]); const [tarjetas,setTarjetas]=useState([])
   const [selJugador,setSelJugador]=useState(''); const [selEquipo,setSelEquipo]=useState(''); const [cantidad,setCantidad]=useState(1); const [tipoTarjeta,setTipoTarjeta]=useState('amarilla')
   const [motivo,setMotivo]=useState(''); const [msg,setMsg]=useState('')
-  const {user,isAdmin}=useAuth()
+  const {user,isAdmin, canAccessTorneo}=useAuth()
+  const canEdit = !!user && (isAdmin || (user.rol==='editor' && partido && canAccessTorneo?.(partido.torneo_id || 0)) || user.rol==='editor' || isAdmin)
+  const isStudent = !user
 
   async function load(){
     try{
@@ -62,64 +64,70 @@ export default function PartidoDetalle(){
         <div className="col-md-6">
           <h6>Goles ({goles.length})</h6>
           <ul className="list-group mb-2">{goles.map((g,i)=>{
-            const j=todosJugadores.find(x=>x.id==g.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${g.jugadorId}`} ({j?j.equipoNombre:`Eq ${g.equipoId}`}) x{g.cantidad} <button className="btn btn-sm btn-outline-danger" onClick={()=>setGoles(goles.filter((_,idx)=>idx!==i))}>x</button></li>
+            const j=todosJugadores.find(x=>x.id==g.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${g.jugadorId}`} ({j?j.equipoNombre:`Eq ${g.equipoId}`}) x{g.cantidad} {!isStudent && canEdit && <button className="btn btn-sm btn-outline-danger" onClick={()=>setGoles(goles.filter((_,idx)=>idx!==i))}>x</button>}</li>
           })}</ul>
           <h6>Faltas ({faltas.length}) <small className="text-muted">distinto a tarjetas</small></h6>
           <ul className="list-group mb-2">{faltas.map((f,i)=>{
-            const j=todosJugadores.find(x=>x.id==f.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${f.jugadorId}`} ({j?j.equipoNombre:`Eq ${f.equipoId}`}) x{f.cantidad} <button className="btn btn-sm btn-outline-danger" onClick={()=>setFaltas(faltas.filter((_,idx)=>idx!==i))}>x</button></li>
+            const j=todosJugadores.find(x=>x.id==f.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${f.jugadorId}`} ({j?j.equipoNombre:`Eq ${f.equipoId}`}) x{f.cantidad} {!isStudent && canEdit && <button className="btn btn-sm btn-outline-danger" onClick={()=>setFaltas(faltas.filter((_,idx)=>idx!==i))}>x</button>}</li>
           })}</ul>
           <h6>Tarjetas ({tarjetas.length})</h6>
           <ul className="list-group mb-2">{tarjetas.map((t,i)=>{
-            const j=todosJugadores.find(x=>x.id==t.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${t.jugadorId}`} ({t.tipo}) <button className="btn btn-sm btn-outline-danger" onClick={()=>setTarjetas(tarjetas.filter((_,idx)=>idx!==i))}>x</button></li>
+            const j=todosJugadores.find(x=>x.id==t.jugadorId); return <li key={i} className="list-group-item d-flex justify-content-between">{j?j.nombre:`Jugador #${t.jugadorId}`} ({t.tipo}) {!isStudent && canEdit && <button className="btn btn-sm btn-outline-danger" onClick={()=>setTarjetas(tarjetas.filter((_,idx)=>idx!==i))}>x</button>}</li>
           })}</ul>
+          {isStudent && <div className="alert alert-light">Vista estudiante: solo lectura. Inicia como editor o admin para cargar eventos.</div>}
         </div>
 
         <div className="col-md-6">
-          <div className="card p-3">
-            <h6>Añadir evento (selects de BD)</h6>
-            <div className="mb-2">
-              <label className="form-label small">Jugador (select de BD)</label>
-              <select className="form-select" value={selJugador} onChange={e=>{
-                const v=e.target.value; setSelJugador(v);
-                const j=todosJugadores.find(x=>x.id==v); if(j) setSelEquipo(j.equipoId)
-              }}>
-                <option value="">-- Selecciona jugador --</option>
-                {todosJugadores.map(j=> <option key={j.id} value={j.id}>{j.nombre} (Eq {j.equipoId} - {j.equipoNombre})</option>)}
-              </select>
-            </div>
-            <div className="mb-2">
-              <label className="form-label small">Equipo (auto por jugador)</label>
-              <select className="form-select" value={selEquipo} onChange={e=>setSelEquipo(e.target.value)}>
-                <option value={partido.equipoA_id}>{partido.equipoA_nombre || 'Equipo A'} ({partido.equipoA_id})</option>
-                <option value={partido.equipoB_id}>{partido.equipoB_nombre || 'Equipo B'} ({partido.equipoB_id})</option>
-              </select>
-            </div>
-            <div className="d-flex gap-2 mb-2">
-              <input type="number" className="form-control w-auto" value={cantidad} onChange={e=>setCantidad(e.target.value)} min={1} placeholder="cantidad" />
-              <select className="form-select w-auto" value={tipoTarjeta} onChange={e=>setTipoTarjeta(e.target.value)}>
-                <option value="amarilla">Amarilla</option>
-                <option value="roja">Roja</option>
-              </select>
-            </div>
-            <div className="d-flex gap-1 flex-wrap">
-              <button className="btn btn-sm btn-outline-primary" onClick={addGol}>+ Gol</button>
-              <button className="btn btn-sm btn-outline-warning" onClick={addFalta}>+ Falta</button>
-              <button className="btn btn-sm btn-outline-danger" onClick={addTarjeta}>+ Tarjeta</button>
-            </div>
-            <small className="text-muted d-block mt-2">Solo nombres propios (jugador) son manuales al crear equipo; aquí se eligen con select.</small>
-          </div>
-
-          <div className="mt-3 d-flex gap-2">
-            <button className="btn btn-primary" onClick={proponer}>Proponer resultado (editor)</button>
-            {isAdmin && <>
-              <button className="btn btn-success" onClick={aprobar}>Aprobar</button>
-              <div className="d-flex gap-1">
-                <input className="form-control form-control-sm" value={motivo} onChange={e=>setMotivo(e.target.value)} placeholder="motivo rechazo" />
-                <button className="btn btn-sm btn-danger" onClick={rechazar}>Rechazar</button>
+          {isStudent ? (
+            <div className="alert alert-info">🔒 Solo <strong>editor</strong> y <strong>admin</strong> pueden cargar eventos. Como estudiante ves el resultado en solo lectura.</div>
+          ) : (
+            <>
+              <div className="card p-3">
+                <h6>Añadir evento (selects de BD) — solo editor/admin</h6>
+                <div className="mb-2">
+                  <label className="form-label small">Jugador (select de BD)</label>
+                  <select className="form-select" value={selJugador} onChange={e=>{
+                    const v=e.target.value; setSelJugador(v);
+                    const j=todosJugadores.find(x=>x.id==v); if(j) setSelEquipo(j.equipoId)
+                  }}>
+                    <option value="">-- Selecciona jugador --</option>
+                    {todosJugadores.map(j=> <option key={j.id} value={j.id}>{j.nombre} (Eq {j.equipoId} - {j.equipoNombre})</option>)}
+                  </select>
+                </div>
+                <div className="mb-2">
+                  <label className="form-label small">Equipo (auto por jugador)</label>
+                  <select className="form-select" value={selEquipo} onChange={e=>setSelEquipo(e.target.value)}>
+                    <option value={partido.equipoA_id}>{partido.equipoA_nombre || 'Equipo A'} ({partido.equipoA_id})</option>
+                    <option value={partido.equipoB_id}>{partido.equipoB_nombre || 'Equipo B'} ({partido.equipoB_id})</option>
+                  </select>
+                </div>
+                <div className="d-flex gap-2 mb-2">
+                  <input type="number" className="form-control w-auto" value={cantidad} onChange={e=>setCantidad(e.target.value)} min={1} placeholder="cantidad" />
+                  <select className="form-select w-auto" value={tipoTarjeta} onChange={e=>setTipoTarjeta(e.target.value)}>
+                    <option value="amarilla">Amarilla</option>
+                    <option value="roja">Roja</option>
+                  </select>
+                </div>
+                <div className="d-flex gap-1 flex-wrap">
+                  <button className="btn btn-sm btn-outline-primary" onClick={addGol}>+ Gol</button>
+                  <button className="btn btn-sm btn-outline-warning" onClick={addFalta}>+ Falta</button>
+                  <button className="btn btn-sm btn-outline-danger" onClick={addTarjeta}>+ Tarjeta</button>
+                </div>
               </div>
-            </>}
-          </div>
-          {!isAdmin && <small className="text-muted">Solo admin ve Aprobar/Rechazar. Editor solo propone.</small>}
+
+              <div className="mt-3 d-flex gap-2 flex-wrap">
+                <button className="btn btn-primary" onClick={proponer}>Proponer resultado (editor)</button>
+                {isAdmin && <>
+                  <button className="btn btn-success" onClick={aprobar}>Aprobar</button>
+                  <div className="d-flex gap-1">
+                    <input className="form-control form-control-sm" value={motivo} onChange={e=>setMotivo(e.target.value)} placeholder="motivo rechazo" />
+                    <button className="btn btn-sm btn-danger" onClick={rechazar}>Rechazar</button>
+                  </div>
+                </>}
+              </div>
+              {!isAdmin && <small className="text-muted d-block mt-2">Editor solo propone. Admin aprueba/rechaza.</small>}
+            </>
+          )}
         </div>
       </div>
     </div>
