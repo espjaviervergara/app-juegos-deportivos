@@ -20,7 +20,45 @@ export default function TorneoDetalle(){
     </div>
   )
 }
-function EquiposTab({id}){ const [rows,setRows]=useState([]); useEffect(()=>{ get(`/torneos/${id}/equipos`).then(r=>setRows(r.data)).catch(()=>{}) },[id]); return <ul className="list-group">{rows.map(e=><li key={e.id} className="list-group-item d-flex justify-content-between"><span>{e.nombre} <small className="text-muted">#{e.id}</small></span><a href={`/equipos/${e.id}`} className="btn btn-sm btn-outline-primary">Ver / Añadir jugadores</a></li>)}</ul> }
+function EquiposTab({id}){
+  const [rows,setRows]=useState([]); const [todos,setTodos]=useState([]); const [sel,setSel]=useState(''); const [msg,setMsg]=useState('')
+  async function load(){
+    const r=await get(`/torneos/${id}/equipos`).catch(()=>({data:[]})); setRows(r.data);
+    const t=await get(`/equipos?page=1&limit=100`).catch(()=>({data:[]})); setTodos(t.data)
+  }
+  useEffect(()=>{ load() },[id])
+  async function add(){
+    if(!sel) return setMsg('Selecciona equipo')
+    try{ await post(`/torneos/${id}/equipos`,{equipoId:parseInt(sel)}); setSel(''); setMsg('Añadido'); load() }catch(e){ setMsg(e.message) }
+  }
+  const noInscritos = todos.filter(t=> !rows.some(r=>r.id===t.id))
+  return (
+    <div>
+      {msg && <div className="alert alert-info">{msg}</div>}
+      <div className="d-flex gap-2 mb-3">
+        <select className="form-select w-auto" value={sel} onChange={e=>setSel(e.target.value)}>
+          <option value="">-- Selecciona equipo de BD --</option>
+          {noInscritos.map(eq=> <option key={eq.id} value={eq.id}>{eq.nombre}</option>)}
+        </select>
+        <button className="btn btn-primary" onClick={add}>Añadir a torneo</button>
+        <a href="/admin/equipos" className="btn btn-outline-secondary">Crear equipo nuevo</a>
+      </div>
+      <small className="text-muted d-block mb-2">Solo nombres propios (equipo) se escriben al crear; aquí se elige con select de BD.</small>
+      <ul className="list-group">
+        {rows.map(e=>(
+          <li key={e.id} className="list-group-item d-flex justify-content-between align-items-center">
+            <span>{e.nombre} <small className="text-muted">#{e.id}</small></span>
+            <span>
+              <a href={`/equipos/${e.id}`} className="btn btn-sm btn-outline-primary me-1">Ver / Añadir jugadores</a>
+              <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/torneos/${id}/equipos/${e.id}`).catch(er=>setMsg(er.message)); load()}}>Quitar</button>
+            </span>
+          </li>
+        ))}
+        {rows.length===0 && <li className="list-group-item text-muted">Sin equipos. Añade desde el select.</li>}
+      </ul>
+    </div>
+  )
+}
 
 function GruposTab({torneoId}){
   const [grupos,setGrupos]=useState([]); const [nombre,setNombre]=useState(''); const [numGrupos,setNumGrupos]=useState(2); const [msg,setMsg]=useState('')
