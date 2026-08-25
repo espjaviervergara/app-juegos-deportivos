@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import Breadcrumb from './Breadcrumb.jsx'
 
 export default function Layout({children}){
   const {user,isAdmin,logout}=useAuth()
@@ -38,13 +39,17 @@ export default function Layout({children}){
             <li className="nav-item"><Link className="nav-link text-white" to="/torneos">Torneos</Link></li>
             <li className="nav-item"><Link className="nav-link text-white" to="/calendario">Calendario</Link></li>
             {user && <li className="nav-item"><Link className="nav-link text-white" to="/dashboard">Dashboard</Link></li>}
+            {isAdmin && <li className="nav-item"><Link className="nav-link text-white" to="/admin/usuarios">Usuarios</Link></li>}
             {isAdmin && <li className="nav-item"><Link className="nav-link text-white" to="/admin/auditoria">Auditoría</Link></li>}
           </ul>
           <div className="mt-4 p-2 bg-primary rounded">
             <small>💡 Tip: ¡Hidrátate y calienta antes de jugar!</small>
           </div>
         </nav>
-        <main className="flex-fill p-3 p-md-4 bg-light" style={{minHeight:'calc(100vh - 56px)'}}>{children}</main>
+        <main className="flex-fill p-3 p-md-4 bg-light" style={{minHeight:'calc(100vh - 56px)'}}>
+          <Breadcrumb />
+          {children}
+        </main>
       </div>
     </div>
   )

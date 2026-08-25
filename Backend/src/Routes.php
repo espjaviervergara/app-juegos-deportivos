@@ -22,10 +22,13 @@ class Routes
 {
     public static function register(Router $r): void
     {
-        // Auth
+        // Auth & Usuarios
         $r->post('/api/v1/auth/login', [AuthController::class,'login']);
         $r->post('/api/v1/auth/refresh', [AuthController::class,'refresh']);
         $r->post('/api/v1/auth/logout', [AuthController::class,'logout'], [AuthMiddleware::class]);
+        $r->get('/api/v1/usuarios', [\App\Controllers\UsuarioController::class,'index'], [AuthMiddleware::class, RbacMiddleware::class]);
+        $r->post('/api/v1/usuarios', [\App\Controllers\UsuarioController::class,'store'], [AuthMiddleware::class, RbacMiddleware::class]);
+        $r->delete('/api/v1/usuarios/{id}', [\App\Controllers\UsuarioController::class,'destroy'], [AuthMiddleware::class, RbacMiddleware::class]);
 
         // Deportes (GET público, escritura admin)
         $r->get('/api/v1/deportes', [DeporteController::class,'index']);

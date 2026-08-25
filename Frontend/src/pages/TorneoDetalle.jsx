@@ -1,32 +1,37 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { get, post, del } from '../services/api.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 export default function TorneoDetalle(){
-  const {id}=useParams(); const [t,setT]=useState(null); const [tab,setTab]=useState('equipos')
+  const {id}=useParams(); const [t,setT]=useState(null); const {isAdmin}=useAuth(); const [tab,setTab]=useState(isAdmin?'equipos':'calendario')
   useEffect(()=>{ get(`/torneos/${id}`).then(r=>setT(r.data)).catch(()=>{}) },[id])
+  useEffect(()=>{ if(t && !isAdmin) setTab('calendario') },[t, isAdmin])
   if(!t) return <div>Cargando...</div>
+  const tabs = isAdmin ? ['equipos','grupos','jornadas','calendario','clasificacion'] : ['calendario','clasificacion','equipos']
   return (
     <div>
-      <h3>{t.nombre} <small className="text-muted">{t.categoria} {t.formato}</small></h3>
+      <h3>{t.nombre} <small className="text-muted">{t.categoria} {t.formato}</small> {!isAdmin && <span className="badge bg-success ms-2">Vista estudiante (solo lectura)</span>}</h3>
       <ul className="nav nav-tabs mb-3">
-        {['equipos','grupos','jornadas','calendario','clasificacion'].map(k=><li key={k} className="nav-item"><button className={`nav-link ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{k}</button></li>)}
+        {tabs.map(k=><li key={k} className="nav-item"><button className={`nav-link ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{k}</button></li>)}
       </ul>
-      {tab==='equipos' && <EquiposTab id={id}/>}
-      {tab==='grupos' && <GruposTab torneoId={id}/>}
-      {tab==='jornadas' && <JornadasTab torneoId={id}/>}
+      {tab==='equipos' && <EquiposTab id={id} readOnly={!isAdmin} />}
+      {tab==='grupos' && (isAdmin ? <GruposTab torneoId={id}/> : <div className="alert alert-info">Solo admin puede gestionar grupos.</div>)}
+      {tab==='jornadas' && (isAdmin ? <JornadasTab torneoId={id}/> : <div className="alert alert-info">Solo admin puede gestionar jornadas. Ve a Calendario para ver programación.</div>)}
       {tab==='calendario' && <div><Link to={`/torneos/${id}/calendario`}>Ver calendario completo (cards por jornada → grupo)</Link></div>}
       {tab==='clasificacion' && <Link to={`/torneos/${id}/clasificacion`}>Ver tabla clásica</Link>}
     </div>
   )
 }
-function EquiposTab({id}){
+function EquiposTab({id, readOnly}){
   const [rows,setRows]=useState([]); const [todos,setTodos]=useState([]); const [sel,setSel]=useState(''); const [msg,setMsg]=useState('')
   async function load(){
     const r=await get(`/torneos/${id}/equipos`).catch(()=>({data:[]})); setRows(r.data);
-    const t=await get(`/equipos?page=1&limit=100`).catch(()=>({data:[]})); setTodos(t.data)
+    if(!readOnly){
+      const t=await get(`/equipos?page=1&limit=100`).catch(()=>({data:[]})); setTodos(t.data)
+    }
   }
-  useEffect(()=>{ load() },[id])
+  useEffect(()=>{ load() },[id, readOnly])
   async function add(){
     if(!sel) return setMsg('Selecciona equipo')
     try{ await post(`/torneos/${id}/equipos`,{equipoId:parseInt(sel)}); setSel(''); setMsg('Añadido'); load() }catch(e){ setMsg(e.message) }
@@ -35,26 +40,28 @@ function EquiposTab({id}){
   return (
     <div>
       {msg && <div className="alert alert-info">{msg}</div>}
-      <div className="d-flex gap-2 mb-3">
-        <select className="form-select w-auto" value={sel} onChange={e=>setSel(e.target.value)}>
-          <option value="">-- Selecciona equipo de BD --</option>
-          {noInscritos.map(eq=> <option key={eq.id} value={eq.id}>{eq.nombre}</option>)}
-        </select>
-        <button className="btn btn-primary" onClick={add}>Añadir a torneo</button>
-        <a href="/admin/equipos" className="btn btn-outline-secondary">Crear equipo nuevo</a>
-      </div>
-      <small className="text-muted d-block mb-2">Solo nombres propios (equipo) se escriben al crear; aquí se elige con select de BD.</small>
+      {!readOnly && (
+        <div className="d-flex gap-2 mb-3">
+          <select className="form-select w-auto" value={sel} onChange={e=>setSel(e.target.value)}>
+            <option value="">-- Selecciona equipo de BD --</option>
+            {noInscritos.map(eq=> <option key={eq.id} value={eq.id}>{eq.nombre}</option>)}
+          </select>
+          <button className="btn btn-primary" onClick={add}>Añadir a torneo</button>
+          <a href="/admin/equipos" className="btn btn-outline-secondary">Crear equipo nuevo</a>
+        </div>
+      )}
+      {readOnly && <div className="alert alert-light">Vista estudiante: solo puedes ver los equipos.</div>}
       <ul className="list-group">
         {rows.map(e=>(
           <li key={e.id} className="list-group-item d-flex justify-content-between align-items-center">
             <span>{e.nombre} <small className="text-muted">#{e.id}</small></span>
             <span>
-              <a href={`/equipos/${e.id}`} className="btn btn-sm btn-outline-primary me-1">Ver / Añadir jugadores</a>
-              <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/torneos/${id}/equipos/${e.id}`).catch(er=>setMsg(er.message)); load()}}>Quitar</button>
+              <a href={`/equipos/${e.id}`} className="btn btn-sm btn-outline-primary me-1">Ver jugadores</a>
+              {!readOnly && <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/torneos/${id}/equipos/${e.id}`).catch(er=>setMsg(er.message)); load()}}>Quitar</button>}
             </span>
           </li>
         ))}
-        {rows.length===0 && <li className="list-group-item text-muted">Sin equipos. Añade desde el select.</li>}
+        {rows.length===0 && <li className="list-group-item text-muted">Sin equipos.</li>}
       </ul>
     </div>
   )
@@ -84,7 +91,6 @@ function GruposTab({torneoId}){
           <button className="btn btn-success" onClick={crearAuto}>Generar automático</button>
         </div>
       </div>
-      <small className="text-muted">Auto reparte equipos del torneo en Round-Robin. Reagrupar: añade a otro grupo (mueve).</small>
       <div className="row mt-3">
         {grupos.map(g=>(
           <div key={g.id} className="col-md-6 mb-3">
@@ -149,7 +155,6 @@ function JornadasTab({torneoId}){
           <div><label className="form-label small">Jornada destino</label><select className="form-select" value={jornadaSel} onChange={e=>setJornadaSel(e.target.value)}><option value="">Sin asignar (borrador)</option>{rows.map(j=> <option key={j.id} value={j.id}>Jornada {j.nro} — {j.fecha}</option>)}</select></div>
           <button className="btn btn-success" onClick={generar}>Generar todos vs todos</button>
         </div>
-        <small className="text-muted">Si eliges Sin asignar, partidos quedan en bolsa para asignar jornada/fecha después desde Calendario.</small>
       </div>
       {showElim && <div className="card p-3 mb-3 border-warning">
         <h6>¿Va por eliminación directa?</h6>
@@ -159,7 +164,6 @@ function JornadasTab({torneoId}){
           <button className="btn btn-outline-secondary" onClick={()=>setShowElim(false)}>No, después</button>
         </div>
       </div>}
-      <small className="text-muted">Jornada puede tener partidos de varios grupos. Reasigna desde Calendario.</small>
       <ul className="list-group mt-2">{rows.map(j=> <li key={j.id} className="list-group-item">Jornada {j.nro} — {j.fecha} <a href={`/torneos/${torneoId}/calendario`} className="btn btn-sm btn-outline-secondary ms-2">Ver calendario</a></li>)}</ul>
     </div>
   )

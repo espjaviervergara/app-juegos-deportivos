@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { get, post, del } from '../services/api.js'
+import { useNavigate } from 'react-router-dom'
 
 const endpoints = {
   deportes: { list:'/deportes', create:'/deportes', fields:['nombre'] },
@@ -10,6 +11,7 @@ const endpoints = {
 export default function Gestion({tipo}){
   const [rows,setRows]=useState([]); const [form,setForm]=useState({}); const [msg,setMsg]=useState(''); const [page,setPage]=useState(1)
   const [deportes,setDeportes]=useState([])
+  const nav=useNavigate()
   const cfg = endpoints[tipo] || endpoints.deportes
 
   async function load(){ try{ const r=await get(`${cfg.list}?page=${page}&limit=10`); setRows(r.data)}catch(e){ setMsg(e.message)} }
@@ -26,7 +28,10 @@ export default function Gestion({tipo}){
     try{
       const body={}; cfg.fields.forEach(f=> body[f]=form[f])
       if(tipo==='torneos'){ body.deporteId=parseInt(body.deporteId); if(!body.deporteId) throw Object.assign(new Error('Selecciona deporte'),{code:'VALIDATION_ERROR'}) }
-      await post(cfg.create, body); setForm(tipo==='torneos'?{categoria:'M',formato:'liga',deporteId:''}:{}); await load(); setMsg('Creado')
+      const r=await post(cfg.create, body); setForm(tipo==='torneos'?{categoria:'M',formato:'liga',deporteId:''}:{}); await load(); setMsg('Creado')
+      if(tipo==='torneos' && r.data?.id){
+        setMsg(`Torneo creado. `)
+      }
     }catch(er){ setMsg(er.code==='CONFLICT'?'Ya existe': er.details ? JSON.stringify(er.details) : er.message) }
   }
 
@@ -85,7 +90,10 @@ export default function Gestion({tipo}){
         {rows.map(r=>(
           <li key={r.id} className="list-group-item d-flex justify-content-between align-items-center">
             <span>{r.nombre||r.id} <small className="text-muted">#{r.id} {r.categoria?`[${r.categoria}]`:''} {r.formato?`(${r.formato})`:''}</small></span>
-            <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`${cfg.list}/${r.id}`).catch(e=>setMsg(e.message)); load()}}>Borrar</button>
+            <span>
+              {tipo==='torneos' && <button className="btn btn-sm btn-warning me-1" onClick={()=> nav(`/torneos/${r.id}`)}>Gestionar</button>}
+              <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`${cfg.list}/${r.id}`).catch(e=>setMsg(e.message)); load()}}>Borrar</button>
+            </span>
           </li>
         ))}
       </ul>
