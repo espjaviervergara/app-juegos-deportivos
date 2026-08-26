@@ -56,7 +56,7 @@ export default function PartidoDetalle(){
 
   return (
     <div>
-      <h3>Partido #{partido.id} — {partido.equipoA_nombre || partido.equipoA_id} vs {partido.equipoB_nombre || partido.equipoB_id}</h3>
+      <h3>{partido.equipoA_nombre || 'Equipo A'} vs {partido.equipoB_nombre || 'Equipo B'}</h3>
       <p className="text-muted">{partido.fechaHora} — {partido.estado} {resultado && <span className={`badge ${resultado.estado==='OFICIAL'?'bg-success': resultado.estado==='RECHAZADO'?'bg-danger':'bg-warning'}`}>{resultado.estado} v{resultado.version}</span>} {resultado?.motivo_rechazo && <span className="ms-2">Motivo: {resultado.motivo_rechazo}</span>}</p>
       {msg && <div className="alert alert-info">{msg}</div>}
 

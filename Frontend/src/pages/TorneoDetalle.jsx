@@ -54,10 +54,10 @@ function EquiposTab({id, readOnly}){
       <ul className="list-group">
         {rows.map(e=>(
           <li key={e.id} className="list-group-item d-flex justify-content-between align-items-center">
-            <span>{e.nombre} <small className="text-muted">#{e.id}</small></span>
+            <span>{e.nombre}</span>
             <span>
               <a href={`/equipos/${e.id}`} className="btn btn-sm btn-outline-primary me-1">Ver jugadores</a>
-              {!readOnly && <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/torneos/${id}/equipos/${e.id}`).catch(er=>setMsg(er.message)); load()}}>Quitar</button>}
+              <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/torneos/${id}/equipos/${e.id}`).catch(er=>setMsg(er.message)); load()}}>Quitar</button>
             </span>
           </li>
         ))}

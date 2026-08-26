@@ -37,7 +37,7 @@ export default function Dashboard(){
             <div className="list-group">
               {misTorneos.map(t=>(
                 <Link key={t.id||t.torneo_id} to={`/torneos/${t.id||t.torneo_id}`} className="list-group-item list-group-item-action">
-                  Torneo #{t.id||t.torneo_id} — {t.nombre||'Sin nombre'} <span className="badge bg-primary float-end">Ver</span>
+                  {t.nombre||'Torneo'} <span className="badge bg-primary float-end">Ver</span>
                 </Link>
               ))}
             </div>

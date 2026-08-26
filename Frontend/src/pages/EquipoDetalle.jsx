@@ -29,16 +29,16 @@ export default function EquipoDetalle(){
   if(!equipo) return <div>Cargando equipo...</div>
   return (
     <div>
-      <h3>{equipo.nombre} <small className="text-muted">#{equipo.id}</small></h3>
+      <h3>{equipo.nombre}</h3>
       <p><Link to="/torneos">← Volver a torneos</Link></p>
       {msg && <div className="alert alert-info">{msg}</div>}
 
       <h5>Jugadores ({jugadores.length})</h5>
       {jugadores.length===0 ? <div className="alert alert-light">Sin jugadores. Añade el primero.</div> :
         <table className="table table-sm table-bordered">
-          <thead><tr><th>#</th><th>Nombre</th><th>Dorsal</th>{isAdmin && <th></th>}</tr></thead>
+          <thead><tr><th>Nombre</th><th>Dorsal</th>{isAdmin && <th></th>}</tr></thead>
           <tbody>{jugadores.map(j=>(
-            <tr key={j.id}><td>{j.id}</td><td>{j.nombre}</td><td>{j.dorsal||'-'}</td>
+            <tr key={j.id}><td>{j.nombre}</td><td>{j.dorsal||'-'}</td>
               {isAdmin && <td><button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/jugadores/${j.id}`).catch(e=>setMsg(e.message)); load()}}>Borrar</button></td>}
             </tr>
           ))}</tbody>

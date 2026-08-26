@@ -24,9 +24,9 @@ export default function Usuarios(){
         <small className="text-muted">Solo admin puede crear segundo admin o ayudante. El ayudante solo coloca resultados.</small>
       </form>
       <table className="table table-sm table-bordered">
-        <thead><tr><th>#</th><th>Nombre</th><th>Email</th><th>Rol</th><th></th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th></th></tr></thead>
         <tbody>{rows.map(u=>(
-          <tr key={u.id}><td>{u.id}</td><td>{u.nombre}</td><td>{u.email}</td><td><span className={`badge ${u.rol==='admin'?'bg-danger':'bg-primary'}`}>{u.rol}</span></td><td><button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/usuarios/${u.id}`).catch(e=>setMsg(e.message)); load()}}>Borrar</button></td></tr>
+          <tr key={u.id}><td>{u.nombre}</td><td>{u.email}</td><td><span className={`badge ${u.rol==='admin'?'bg-danger':'bg-primary'}`}>{u.rol}</span></td><td><button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`/usuarios/${u.id}`).catch(e=>setMsg(e.message)); load()}}>Borrar</button></td></tr>
         ))}</tbody>
       </table>
     </div>

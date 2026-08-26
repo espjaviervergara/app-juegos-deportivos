@@ -7,7 +7,7 @@ export default function Auditoria(){
   return (
     <div>
       <h4>Auditoría (solo admin)</h4>
-      <table className="table table-sm"><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Torneo</th></tr></thead><tbody>{rows.map(a=><tr key={a.id}><td>{a.created_at}</td><td>{a.usuario_id}</td><td>{a.accion}</td><td>{a.torneo_id}</td></tr>)}</tbody></table>
+      <table className="table table-sm"><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Torneo</th></tr></thead><tbody>{rows.map(a=><tr key={a.id}><td>{new Date(a.created_at).toLocaleString()}</td><td>{a.usuario_nombre || a.usuario_email || 'Sistema'}</td><td>{a.accion}</td><td>{a.torneo_nombre || '-'}</td></tr>)}</tbody></table>
       <button className="btn btn-sm btn-outline-secondary" onClick={()=>setPage(p=>Math.max(1,p-1))}>Anterior</button><button className="btn btn-sm btn-outline-secondary ms-1" onClick={()=>setPage(p=>p+1)}>Siguiente</button>
     </div>
   )

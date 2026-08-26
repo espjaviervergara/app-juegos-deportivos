@@ -89,7 +89,7 @@ export default function Gestion({tipo}){
       <ul className="list-group">
         {rows.map(r=>(
           <li key={r.id} className="list-group-item d-flex justify-content-between align-items-center">
-            <span>{r.nombre||r.id} <small className="text-muted">#{r.id} {r.categoria?`[${r.categoria}]`:''} {r.formato?`(${r.formato})`:''}</small></span>
+            <span>{r.nombre} <small className="text-muted">{r.categoria?`[${r.categoria}]`:''} {r.formato?`(${r.formato})`:''}</small></span>
             <span>
               {tipo==='torneos' && <button className="btn btn-sm btn-warning me-1" onClick={()=> nav(`/torneos/${r.id}`)}>Gestionar</button>}
               <button className="btn btn-sm btn-outline-danger" onClick={async()=>{ await del(`${cfg.list}/${r.id}`).catch(e=>setMsg(e.message)); load()}}>Borrar</button>
